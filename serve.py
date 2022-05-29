@@ -39,8 +39,8 @@ async def register(user: User):
         return JSONResponse(status_code=status.HTTP_409_CONFLICT,content=str('El nombre de usuario ya existe'))
     else:
         email = base64.b64decode(user.email).decode('utf-8')
-        password = base64.b64decode(user.password).decode('utf-8')
-        connectDB(f'insert into users(username,email,password) values("{username}","{email}","{password}");')
+        # password = base64.b64decode(user.password).decode('utf-8')
+        connectDB(f'insert into users(username,email,password) values("{username}","{email}","{user.password}");')
         return 'Cuenta creada Satisfactoriamente'
         
 
