@@ -1,62 +1,92 @@
-# import base64
-# from fastapi import FastAPI,status
-# from fastapi.encoders import jsonable_encoder
-# from fastapi.responses import JSONResponse,RedirectResponse
-# from pydantic import BaseModel
-# import pymysql as sql
-# import uvicorn
-# from configparser import ConfigParser
-# from starlette.requests import Request
-# config = ConfigParser()
-# config.read('CONFIG.ini')
 
-# # passwordHashed = base64.b64decode('bm9oYXNoZWQ=')
-# # pwdPlain = passwordHashed.decode('ascii')
-# # print(pwdPlain)
+# # def solution(n):
+# # 	num_list = list(str(n))
+# # 	a = 0
+# # 	print(num_list)
+# # 	for i in num_list:
+# # 		a+=int(i)
+# # 	# print(a)
 
-# app = FastAPI()
+# # solution(29)
 
-# class User(BaseModel):
-#     username:str
-#     email:str
-#     password:str
+# # def solution(a, b, k):
+# # 	c = list(reversed(b))
+# # 	c = str(c)
+# # 	b = str(b)
+# # 	cont = 0
+# # 	data = 0
+# # 	for i in range(len(b)):
+# # 		print([i])
 
-# @app.post('/register')
-# async def register(user: User):
+# def solution(a, b, k):
+# 	c = list(reversed(b))
+# 	cont = 0
+# 	data = 0
+# 	for i in range(len(c)):
+# 		data = str(a[i])+  str(c[i])
+# 		print(data)
+# 		if int(data) < k:
+# 			cont += 1
+# 	return cont
 
-#     username = base64.b64decode(user.username).decode('utf-8')
-#     email = base64.b64decode(user.email).decode('utf-8')
-#     password = base64.b64decode(user.password).decode('utf-8')
-#     # print(user.username,user.email,user.password)
-#     return 'Correcto'
+# a=[16, 1, 4, 2, 14]
+# b= [7, 11, 2, 0, 15]
+# k= 743
 
-# def connectDB(query):   
-#     global values
-#     try:
-#         con = (sql.connect(host = config.get('mysql','server'),user = config.get('mysql','user'), password = config.get('mysql','password') ,database = config.get('mysql','database')))
-#         # print(f'Conexion Ok')
-#         try:
-#             with con.cursor() as send:
-#                 send.execute(query)
-#                 values = send.fetchall()
-#             con.commit()
-#         finally:
-#             """ Cerrar conexión """
-#             con.close()
-#             # print('[OK] : Query Executed Successfully')
-
-#     except (sql.err.OperationalError, sql.err.InternalError, sql.err.ProgrammingError, sql.err.Error, sql.err.DatabaseError,sql.err.MySQLError) as e:
-#         print(f'[ERROR] {e}')
+# solution(a,b,k)
 
 
-# if __name__=='__main__':
-#     uvicorn.run(app)
+# matrix = [[9, 7, 4, 5], [1, 6, 2, -6], [12, 20, 2, 0], [-5, -6, 7, -2]]
 
-from flask import Flask,request
-app = Flask(__name__)
+# def solution(arr):
+#     newString = ''
+#     for i in range(len(arr)):
+#         temp = list(arr[i])
+#         test = temp[1::]
+#         arr[i]=test[1::]
+#         newString+=temp[0]
+#         print(newString)
 
-@app.route('/login',methods=['POST'])
-def hello_world():
-    data = request.get_json()
-    query = f'SELECT * FROM users WHERE username = "{data["username"]}" AND password = "{data["password"]}"'
-    return data
+
+arr = (["Daisy", "Rose", "Hyacinth", "Poppy"])
+# solution(arr)
+# obtain first letter from each string in the list and put them in a new list for the list is empty
+# for i in range(len(arr)):
+""" cont = 0
+newString = ''
+while True:
+    if arr[cont]:
+        newString+=arr[cont][0]
+        arr[cont]=arr[cont][1::]
+        cont+=1
+        # print(arr,newString)
+
+        if cont == len(arr):
+            cont=0
+    elif arr[cont]:
+        arr.pop(cont)
+    else:
+        break
+print(newString) """
+
+# matrix= [[9, 7, 4, 5, 3],
+#         [1, 6, 2, -6, 2],
+#         [12, 20, 2, 0, 1],
+#         [-5, -6, 7, -2, 0],
+#         [1, 6, 2, -6, 2]]
+
+matrix= [[9, 1, 2, 0],
+        [8, 4, 3, 1]]
+
+
+#extract only border of matri4
+
+a = [matrix[0][1:3],matrix[1][1:3]]
+import numpy as np# 
+print(a)
+lista2 = [4,2,3,1]
+
+lista = np.reshape(sorted(lista2),(2,2))
+print(lista)
+
+

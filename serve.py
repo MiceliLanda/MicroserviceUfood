@@ -42,17 +42,10 @@ async def register(user: User):
         # password = base64.b64decode(user.password).decode('utf-8')
         connectDB(f'insert into users(username,email,password) values("{username}","{email}","{user.password}");')
         return 'Cuenta creada Satisfactoriamente'
-        
-
-    # email = base64.b64decode(user.email).decode('utf-8')
-    # # password = base64.b64decode(user.password).decode('utf-8')
-    # connectDB(f'insert into users (username,email,password) values ("{username}","{email}","{user.password}");')
 
 @app.post("/auth/login")
 async def loginAuth(data:OAuth2PasswordRequestForm = Depends()):
     username = data.username
-    # pwdHashed = base64.b64decode(data.password)
-    # password = pwdHashed.decode('ascii')
     password = data.password
     print(username,password)
     user = load_user(username)
