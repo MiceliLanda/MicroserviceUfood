@@ -34,18 +34,17 @@ def load_user(username:str):
 async def register(user: User):
     username = base64.b64decode(user.username).decode('utf-8')
     connectDB(f'select username from users where username = "{username}";')
-    check_username = values[0]
-    if check_username:
-        return JSONResponse(status_code=status.HTTP_409_CONFLICT,content=str('El nombre de usuario ya existe'))
+    if len(values) == 0:
+        connectDB(f'insert into users (username,email,password) values ("{username}","{user.email}","{user.password}");')
+        return 'Usuario Creado Satisfactoriamente'
     else:
-        email = base64.b64decode(user.email).decode('utf-8')
-        # password = base64.b64decode(user.password).decode('utf-8')
-        connectDB(f'insert into users(username,email,password) values("{username}","{email}","{user.password}");')
-        return 'Cuenta creada Satisfactoriamente'
+        return JSONResponse(status_code=status.HTTP_409_CONFLICT, content={"El nombre de usuario ya existe"})
 
 @app.post("/auth/login")
 async def loginAuth(data:OAuth2PasswordRequestForm = Depends()):
+    global usuario
     username = data.username
+    usuario = data.username
     password = data.password
     print(username,password)
     user = load_user(username)
@@ -66,7 +65,10 @@ async def loginAuth(data:OAuth2PasswordRequestForm = Depends()):
 
 @app.get('/home')
 def home(_=Depends(manager)):
-    return "Usuario autenticado"
+    # obtain username from cookie
+    
+
+    return usuario
 
 def connectDB(query):   
     global values
