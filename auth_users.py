@@ -1,11 +1,12 @@
 from datetime import timedelta
 import json
+import bcrypt
 from fastapi import Depends, FastAPI, HTTPException, status # Assuming you have the FastAPI class for routing
 from fastapi.responses import RedirectResponse,JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm,OAuth2PasswordBearer
 from fastapi_login import LoginManager #Loginmanager Class
 from fastapi.encoders import jsonable_encoder
-# from jose import JWTError, jwt
+from bcrypt import hashpw, gensalt
 from pydantic import BaseModel#Exception class
 import pymysql as sql
 import uvicorn
@@ -31,9 +32,6 @@ class User(BaseModel):
 
 @manager.user_loader()
 def load_user(username:str):
-    """ ENVIAR TABLE DESDE FRONT PARA CHECAR SI ES CLIENTE U OWNER ,
-    ANEXAR AL HEADER 'Content-Type': 'application/x-www-form-urlencoded' y enviar en body
-    """
     connectDB(f'select email,password,isowner from user where email = "{username}";')
     print('esto es values',values)
     if len(values) == 0:
@@ -52,7 +50,7 @@ async def loginAuth(data:OAuth2PasswordRequestForm = Depends()):
     user = load_user(username)
 
     if user != 'User not found':
-        if password == user[1]:
+        if bcrypt.checkpw(password.encode('utf-8'), str(user[1]).encode('utf-8')):
             access_token = manager.create_access_token(data={"sub":username},expires=timedelta(minutes=60))
             response = RedirectResponse(url='/home',status_code=status.HTTP_200_OK)
             response.set_cookie(manager.cookie_name,access_token)
@@ -68,7 +66,9 @@ async def loginAuth(data:OAuth2PasswordRequestForm = Depends()):
 async def register(user: User):
     connectDB(f'select email from user where email = "{user.email}";')
     if len(values) == 0:
-        connectDB(f'insert into user (first_name,last_name,email,phone,password,isowner) values ("{user.first_name}","{user.last_name}","{user.email}","{user.phone}","{user.password}","{user.isowner}");')
+        pwd = bcrypt.hashpw(user.password.encode('utf-8'), gensalt(10))
+        # print('hasheado -> ',pwd.decode('utf-8'))
+        connectDB(f'insert into user (first_name,last_name,email,phone,password,isowner) values ("{user.first_name}","{user.last_name}","{user.email}","{user.phone}","{pwd.decode("utf-8")}","{user.isowner}");')
         return JSONResponse("Usuario registrado",status_code=status.HTTP_200_OK)
     else:
         return JSONResponse("El usuario ya existe",status_code=status.HTTP_400_BAD_REQUEST)
@@ -101,7 +101,7 @@ async def register(user: User):
 def connectDB(query):   
     global values
     try:
-        con = (sql.connect(host = config.get('mysql','server'),user = config.get('mysql','user'), password = config.get('mysql','password') ,database = config.get('mysql','database')))
+        con = (sql.connect(host = config.get('mysql','server'),user = config.get('mysql','user'), password = config.get('mysql','password') ,database = config.get('mysql','database'),port = int(config.get('mysql','port'))))
         try:
             with con.cursor() as send:
                 send.execute(query)
