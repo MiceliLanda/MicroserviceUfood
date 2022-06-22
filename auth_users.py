@@ -1,4 +1,5 @@
 from datetime import timedelta
+import json
 from fastapi import Depends, FastAPI, HTTPException, status # Assuming you have the FastAPI class for routing
 from fastapi.responses import RedirectResponse,JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm,OAuth2PasswordBearer
@@ -34,6 +35,7 @@ def load_user(username:str):
     ANEXAR AL HEADER 'Content-Type': 'application/x-www-form-urlencoded' y enviar en body
     """
     connectDB(f'select email,password,isowner from user where email = "{username}";')
+    print('esto es values',values)
     if len(values) == 0:
         return 'User not found'
     else: 
@@ -54,9 +56,9 @@ async def loginAuth(data:OAuth2PasswordRequestForm = Depends()):
             access_token = manager.create_access_token(data={"sub":username},expires=timedelta(minutes=60))
             response = RedirectResponse(url='/home',status_code=status.HTTP_200_OK)
             response.set_cookie(manager.cookie_name,access_token)
-            print('Token -> ',access_token)
+            res = {'Token':access_token, "type":user[2]}
             # return access_token
-            return JSONResponse({'Token':access_token, "type":user[2]},status_code=status.HTTP_200_OK)
+            return JSONResponse(content=jsonable_encoder(res),status_code=status.HTTP_200_OK)
         else:
             return JSONResponse("El password es incorrecto",status_code=status.HTTP_403_FORBIDDEN)
     else:
@@ -105,12 +107,14 @@ def connectDB(query):
                 send.execute(query)
                 values = send.fetchall()
             con.commit()
+            return send.fetchall()
         finally:
             """ Cerrar conexión """
             con.close()
 
     except (sql.err.OperationalError, sql.err.InternalError, sql.err.ProgrammingError, sql.err.Error, sql.err.DatabaseError,sql.err.MySQLError) as e:
         print(f'[ERROR] {e}')
+        return f'[ERROR] {e}'
 
 if __name__ == "__main__":
-    uvicorn.run("auth:app", host="0.0.0.0", port=9000, reload=True, debug=True)
+    uvicorn.run("auth_users:app", host="0.0.0.0", port=9000, reload=True, debug=True)
