@@ -28,7 +28,7 @@ class User(BaseModel):
     email:str
     phone:int
     password:str
-    isowner:int
+    isowner:str
 
 @manager.user_loader()
 def load_user(username:str):
@@ -67,8 +67,10 @@ async def register(user: User):
     connectDB(f'select email from user where email = "{user.email}";')
     if len(values) == 0:
         pwd = bcrypt.hashpw(user.password.encode('utf-8'), gensalt(10))
+        type_user = user.isowner
+        isowner = 0 if type_user  == 'Cliente' else 1
         # print('hasheado -> ',pwd.decode('utf-8'))
-        connectDB(f'insert into user (first_name,last_name,email,phone,password,isowner) values ("{user.first_name}","{user.last_name}","{user.email}","{user.phone}","{pwd.decode("utf-8")}","{user.isowner}");')
+        connectDB(f'insert into user (first_name,last_name,email,phone,password,isowner) values ("{user.first_name}","{user.last_name}","{user.email}","{user.phone}","{pwd.decode("utf-8")}","{isowner}");')
         return JSONResponse("Usuario registrado",status_code=status.HTTP_200_OK)
     else:
         return JSONResponse("El usuario ya existe",status_code=status.HTTP_400_BAD_REQUEST)
