@@ -1,0 +1,13 @@
+fastapi
+fastapi_login
+bcrypt
+pydantic
+uvicorn
+configparser
+pymysql
+python-multipart
+cryptography
+sqlalchemy
+python-dotenv
+
+
