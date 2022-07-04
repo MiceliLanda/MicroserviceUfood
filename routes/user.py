@@ -27,7 +27,8 @@ def loginUser(data:OAuth2PasswordRequestForm=Depends()):
             access_token = manager.create_access_token(data={"sub":user.email},expires=timedelta(minutes=60))
             response = RedirectResponse(url='/home',status_code=status.HTTP_200_OK)
             response.set_cookie(manager.cookie_name,access_token)
-            res = {'Token':access_token, "user":user}
+            usuario = {'name':user.name,'lastname':user.lastname,'email':user.email,'phone':user.phone,'avatar_url':user.url_avatar}
+            res = {'token':access_token, "user":usuario}
             return JSONResponse(content=jsonable_encoder(res),status_code=status.HTTP_200_OK)
         else:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username or password")

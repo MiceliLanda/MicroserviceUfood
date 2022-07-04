@@ -10,4 +10,3 @@ cryptography
 sqlalchemy
 python-dotenv
 
-
