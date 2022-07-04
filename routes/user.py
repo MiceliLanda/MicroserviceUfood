@@ -19,7 +19,7 @@ userRoute = APIRouter()
 
 @userRoute.get("/",response_model=Usuario)
 def getUsers():
-    user = conn.execute(tableUser.select()).fetchall()
+    user = conn.execute(tableUser.select()).first()
     return user
 
 @userRoute.post('/auth/login')
