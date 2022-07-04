@@ -17,9 +17,9 @@ manager.cookie_name = "access_token"
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 userRoute = APIRouter()
 
-@userRoute.get("/",response_model=Usuario)
+@userRoute.get("/")
 def getUsers():
-    user = conn.execute(tableUser.select()).first()
+    user = conn.execute(tableUser.select()).fetchall()
     return user
 
 @userRoute.post('/auth/login')
