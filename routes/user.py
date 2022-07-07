@@ -2,7 +2,9 @@ from datetime import timedelta
 import bcrypt
 from fastapi import APIRouter
 from models.user import tableUser
+from models.owner import tableOwner
 from schemas.user import Usuario
+from schemas.owner import Owner
 from config.db import conn
 from fastapi import Depends, HTTPException, status
 from fastapi.responses import RedirectResponse,JSONResponse
@@ -20,7 +22,13 @@ userRoute = APIRouter()
 @userRoute.get("/")
 def getUsers():
     user = conn.execute(tableUser.select()).fetchall()
-    return user
+    owner = conn.execute(tableOwner.select()).fetchall()
+    return user, owner
+
+@userRoute.delete("/{id}")
+def deleteUser(id: int):
+    conn.execute(tableUser.delete().where(tableUser.c.id == id))
+    return {"message": "Usuario eliminado"}
 
 @userRoute.post('/auth/login')
 def loginUser(data:OAuth2PasswordRequestForm=Depends()):
@@ -43,11 +51,19 @@ def registerUser(data:Usuario):
     print(data.dict())
     res = conn.execute(tableUser.select().where(tableUser.c.email == data.email)).first()
     if res == None:
-        data.password = hashpw(data.password.encode('utf-8'), gensalt())
-        conn.execute(tableUser.insert(), data.dict())
+        print(data.isowner,'- is Owner?')
+        if data.isowner == True:
+            conn.execute(tableUser.insert(), data.dict())
+            result = conn.execute(tableUser.select().where(tableUser.c.email == data.email)).first()
+            print('este es el id del usuario -> ',result.id,result.name)
+            conn.execute(tableOwner.insert(), {'user_id':result.id})
+            return 'Dueño creado Correctamente'
+        else:
+            data.password = hashpw(data.password.encode('utf-8'), gensalt())
+            conn.execute(tableUser.insert(), data.dict())
         return 'Usuario Creado Correctamente'
     else:
-        return 'Usuario ya existe'
+        return 'El Usuario ya existe'
 
 @manager.user_loader()
 def load_user(username:str):
