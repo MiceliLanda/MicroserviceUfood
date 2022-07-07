@@ -1,10 +1,10 @@
 from datetime import timedelta
+import sys
 import bcrypt
 from fastapi import APIRouter
 from models.user import tableUser
 from models.owner import tableOwner
 from schemas.user import Usuario
-from schemas.owner import Owner
 from config.db import conn
 from fastapi import Depends, HTTPException, status
 from fastapi.responses import RedirectResponse,JSONResponse
@@ -12,6 +12,8 @@ from fastapi.security import OAuth2PasswordRequestForm,OAuth2PasswordBearer
 from fastapi_login import LoginManager
 from fastapi.encoders import jsonable_encoder
 from bcrypt import hashpw, gensalt
+from sqlalchemy import select
+sys.setrecursionlimit(1000)
 
 secret = 'secret_word'
 manager = LoginManager(secret,use_cookie=True,token_url='/login')
@@ -21,13 +23,21 @@ userRoute = APIRouter()
 
 @userRoute.get("/")
 def getUsers():
+    # join table user with table owner
+    #query = conn.execute(select(tableUser.c.id,tableUser.c.name,tableUser.c.lastname,tableUser.c.url_avatar,tableUser.c.email,tableUser.c.phone,tableUser.c.isowner,tableOwner).select_from(tableUser.join(tableOwner, tableUser.c.id == tableOwner.c.user_id))).fetchall()
     user = conn.execute(tableUser.select()).fetchall()
-    owner = conn.execute(tableOwner.select()).fetchall()
-    return user, owner
+    # return {"Owner":query}
+    return user
 
 @userRoute.delete("/{id}")
 def deleteUser(id: int):
-    conn.execute(tableUser.delete().where(tableUser.c.id == id))
+
+    type = conn.execute(tableUser.select().where(tableUser.c.id == id)).first()
+    if type.isowner == 1:
+        conn.execute(tableOwner.delete().where(tableOwner.c.user_id == id))
+        conn.execute(tableUser.delete().where(tableUser.c.id == id))
+    else:
+        conn.execute(tableUser.delete().where(tableUser.c.id == id))
     return {"message": "Usuario eliminado"}
 
 @userRoute.post('/auth/login')
@@ -40,22 +50,25 @@ def loginUser(data:OAuth2PasswordRequestForm=Depends()):
             access_token = manager.create_access_token(data={"sub":user.email},expires=timedelta(minutes=60))
             response = RedirectResponse(url='/home',status_code=status.HTTP_200_OK)
             response.set_cookie(manager.cookie_name,access_token)
-            usuario = {'name':user.name,'lastname':user.lastname,'email':user.email,'phone':user.phone,'avatar_url':user.url_avatar}
-            res = {'token':access_token, "user":usuario}
-            return JSONResponse(content=jsonable_encoder(res),status_code=status.HTTP_200_OK)
+            usuario = {'id':user.id,'name':user.name,'lastname':user.lastname,'email':user.email,'phone':user.phone,'avatar_url':user.url_avatar}
+            if user.isowner == 1:
+                isowner = conn.execute(select(tableUser.c.id,tableUser.c.name,tableUser.c.lastname,tableUser.c.url_avatar,tableUser.c.email,tableUser.c.phone,tableOwner).select_from(tableUser.join(tableOwner, tableUser.c.id == tableOwner.c.user_id))).fetchall()
+                res = {'token':access_token, "Owner":isowner}
+                return JSONResponse(content=jsonable_encoder(res),status_code=status.HTTP_200_OK)
+            else:
+                res = {'token':access_token, "Client":[usuario]}
+                return JSONResponse(content=jsonable_encoder(res),status_code=status.HTTP_200_OK)
         else:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username or password")
 
 @userRoute.post('/auth/register')
 def registerUser(data:Usuario):
-    print(data.dict())
     res = conn.execute(tableUser.select().where(tableUser.c.email == data.email)).first()
     if res == None:
-        print(data.isowner,'- is Owner?')
         if data.isowner == True:
+            data.password = hashpw(data.password.encode('utf-8'), gensalt())
             conn.execute(tableUser.insert(), data.dict())
             result = conn.execute(tableUser.select().where(tableUser.c.email == data.email)).first()
-            print('este es el id del usuario -> ',result.id,result.name)
             conn.execute(tableOwner.insert(), {'user_id':result.id})
             return 'Dueño creado Correctamente'
         else:
