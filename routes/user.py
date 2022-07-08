@@ -29,7 +29,7 @@ def getUsers():
     # return {"Owner":query}
     return user
 
-@userRoute.delete("auth/delete/{id}")
+@userRoute.delete("/auth/delete/{id}")
 def deleteUser(id: int):
     type = conn.execute(tableUser.select().where(tableUser.c.id == id)).first()
     if type.isowner == 1:
