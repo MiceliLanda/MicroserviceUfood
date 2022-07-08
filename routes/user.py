@@ -4,7 +4,7 @@ import bcrypt
 from fastapi import APIRouter
 from models.user import tableUser
 from models.owner import tableOwner
-from schemas.user import Usuario
+from schemas.user import Usuario, UsuarioUpdate
 from config.db import conn
 from fastapi import Depends, HTTPException, status
 from fastapi.responses import RedirectResponse,JSONResponse
@@ -29,16 +29,20 @@ def getUsers():
     # return {"Owner":query}
     return user
 
-@userRoute.delete("/{id}")
+@userRoute.delete("auth/delete/{id}")
 def deleteUser(id: int):
-
     type = conn.execute(tableUser.select().where(tableUser.c.id == id)).first()
     if type.isowner == 1:
         conn.execute(tableOwner.delete().where(tableOwner.c.user_id == id))
         conn.execute(tableUser.delete().where(tableUser.c.id == id))
     else:
         conn.execute(tableUser.delete().where(tableUser.c.id == id))
-    return {"message": "Usuario eliminado"}
+    return {"message": "Usuario eliminado exitosamente"}
+
+@userRoute.put("/auth/update/{id}")
+def updateUser(id: int, user: UsuarioUpdate):
+    conn.execute(tableUser.update().where(tableUser.c.id == id).values(name=user.name,lastname=user.lastname,url_avatar=user.url_avatar,email=user.email,phone=user.phone))
+    return {"message": "Usuario actualizado exitosamente"}
 
 @userRoute.post('/auth/login')
 def loginUser(data:OAuth2PasswordRequestForm=Depends()):

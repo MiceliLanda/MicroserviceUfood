@@ -9,3 +9,10 @@ class Usuario(BaseModel):
     phone:str
     password:str
     isowner:bool
+
+class UsuarioUpdate(BaseModel):
+    name:str
+    lastname:str
+    url_avatar: str 
+    email:str
+    phone:str
