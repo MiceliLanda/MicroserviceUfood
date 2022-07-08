@@ -12,7 +12,6 @@ ownerRoute = APIRouter()
 def shopOwner(id: int):
     dataOwner = conn.execute(select(tableUser.c.id,tableUser.c.name,tableUser.c.lastname,tableUser.c.phone,tableUser.c.email)
     .select_from(tableUser.join(tableOwner).join(tableShop)).where(tableUser.c.id == id).filter(tableOwner.c.user_id == tableUser.c.id).filter(tableShop.c.owner_id == tableOwner.c.id)).first()
-    print(dataOwner,' -none?')
     if dataOwner == []:
         return {"Error":"No se encontro al dueño"}
     else:
