@@ -56,8 +56,8 @@ def loginUser(data:OAuth2PasswordRequestForm=Depends()):
             response.set_cookie(manager.cookie_name,access_token)
             usuario = {'id':user.id,'name':user.name,'lastname':user.lastname,'email':user.email,'phone':user.phone,'avatar_url':user.url_avatar}
             if user.isowner == 1:
-                isowner = conn.execute(select(tableUser.c.id,tableUser.c.name,tableUser.c.lastname,tableUser.c.url_avatar,tableUser.c.email,tableUser.c.phone,tableOwner).select_from(tableUser.join(tableOwner, tableUser.c.id == tableOwner.c.user_id))).fetchall()
-                res = {'token':access_token, "Owner":isowner}
+                isowner = conn.execute(select(tableOwner).select_from(tableUser.join(tableOwner, tableOwner.c.user_id == user.id))).first()
+                res = {'token':access_token, "Owner":{"user":usuario,"data_owner":isowner}}
                 return JSONResponse(content=jsonable_encoder(res),status_code=status.HTTP_200_OK)
             else:
                 res = {'token':access_token, "Client":[usuario]}
