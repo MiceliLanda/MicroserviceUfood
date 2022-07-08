@@ -21,6 +21,9 @@ def shopOwner(id: int):
 # ENVIAR EL ID DEL OWNER EN LA PETICION PARA CREAR EL RESTAURANTE PERTENECIENTE A ESE DUEÑO
 @ownerRoute.post("/owner/shop/create")
 def createShop(shop:Shop):
-    conn.execute(tableShop.insert(), shop.dict())
-    
+    test = conn.execute(select(tableUser.c.isowner).where(tableUser.c.id == shop.owner_id)).first()
+    if(test.isowner == 0):
+        return {"Error":"No es un dueño"}
+    else:
+        conn.execute(tableShop.insert(), shop.dict())
     return {"Restaurant":'Creado correctamente'}
