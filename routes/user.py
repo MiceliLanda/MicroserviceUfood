@@ -75,7 +75,7 @@ def loginUser(data:OAuth2PasswordRequestForm=Depends()):
             else:
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username or password")
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f'No se encontro el usuario')
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f'Incorrect username or password')
 
 @userRoute.post('/auth/register')
 def registerUser(data:Usuario):
