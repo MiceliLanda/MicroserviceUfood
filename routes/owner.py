@@ -32,7 +32,7 @@ def shopOwner(id: int):
     except Exception as e:
         return {"Error":str(e)}
 
-# ENVIAR EL ID DEL OWNER EN LA PETICION PARA CREAR EL RESTAURANTE PERTENECIENTE A ESE DUEÑO
+# ENVIAR EL ID DEL USUARIO (OWNER)"user_id" EN LA PETICION PARA CREAR EL RESTAURANTE PERTENECIENTE A ESE DUEÑO
 @ownerRoute.post("/owner/shop/create")
 def createShop(shop:Shop):
     try:
