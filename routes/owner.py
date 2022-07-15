@@ -38,7 +38,8 @@ def createShop(shop:Shop):
             return {"Error":"No es un dueño"}
         else:
             create = conn.execute(tableShop.insert(), shop.dict())
-            conn.execute(tableMenu.insert(), {'shop_id':str(create.lastrowid)})
-        return {"Restaurant":'Creado correctamente con el id'}
+            res = conn.execute(tableMenu.insert(), {'shop_id':str(create.lastrowid)})
+            
+        return {"Restaurant":{"idMenu":str(res.lastrowid)}}
     except Exception as e:
         return {"Error":str(e)}
