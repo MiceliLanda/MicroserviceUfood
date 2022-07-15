@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from schemas.shop import Shop
+from schemas.shop import Shop, ShopUpdate
 from config.db import conn
 from sqlalchemy import select
 from models.shop import tableShop
@@ -41,5 +41,13 @@ def createShop(shop:Shop):
             res = conn.execute(tableMenu.insert(), {'shop_id':str(create.lastrowid)})
             
         return {"Restaurant":{"idMenu":str(res.lastrowid)}}
+    except Exception as e:
+        return {"Error":str(e)}
+
+@ownerRoute.put("/owner/shop/update/{id}")
+def updateUser(id: int, shop: ShopUpdate):
+    try:
+        conn.execute(tableShop.update().where(tableShop.c.id == id).values(name=shop.name,url_shop=shop.url_shop,phone=shop.phone,address=shop.address))
+        return {"message": "shop actualizada exitosamente"}
     except Exception as e:
         return {"Error":str(e)}
