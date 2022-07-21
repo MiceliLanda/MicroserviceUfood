@@ -69,7 +69,7 @@ def loginUser(data:OAuth2PasswordRequestForm=Depends()):
                 usuario = {'id':user.id,'name':user.name,'lastname':user.lastname,'email':user.email,'phone':user.phone,'avatar_url':user.url_avatar,"credits":user.credits}
                 if user.isowner == 1:
                     isowner = conn.execute(select(tableOwner).select_from(tableUser.join(tableOwner, tableOwner.c.user_id == user.id))).first()
-                    menus = conn.execute(select(tableMenu.c.shop_id).select_from(tableOwner.join(tableShop,tableOwner.c.user_id == tableShop.c.owner_id).join(tableUser,tableOwner.c.user_id == tableUser.c.id).join(tableMenu,tableShop.c.id == tableMenu.c.shop_id)).where(tableOwner.c.user_id == user.id)).fetchall()
+                    menus = conn.execute(select(tableMenu.c.id).select_from(tableOwner.join(tableShop,tableOwner.c.user_id == tableShop.c.owner_id).join(tableUser,tableOwner.c.user_id == tableUser.c.id).join(tableMenu,tableShop.c.id == tableMenu.c.shop_id)).where(tableOwner.c.user_id == user.id)).fetchall()
 
                     res = {'token':access_token, "Owner":{"user":usuario,"data_owner":[isowner,menus]}}
                     return JSONResponse(content=jsonable_encoder(res),status_code=status.HTTP_200_OK)
