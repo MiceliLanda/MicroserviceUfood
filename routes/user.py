@@ -66,11 +66,11 @@ def loginUser(data:OAuth2PasswordRequestForm=Depends()):
                 access_token = manager.create_access_token(data={"sub":user.email},expires=timedelta(minutes=60))
                 response = RedirectResponse(url='/home',status_code=status.HTTP_200_OK)
                 response.set_cookie(manager.cookie_name,access_token)
-                usuario = {'id':user.id,'name':user.name,'lastname':user.lastname,'email':user.email,'phone':user.phone,'avatar_url':user.url_avatar}
+                usuario = {'id':user.id,'name':user.name,'lastname':user.lastname,'email':user.email,'phone':user.phone,'avatar_url':user.url_avatar,"credits":user.credits}
                 if user.isowner == 1:
                     isowner = conn.execute(select(tableOwner).select_from(tableUser.join(tableOwner, tableOwner.c.user_id == user.id))).first()
-                    menus = conn.execute(select(tableMenu.c.shop_id).select_from(tableOwner.join(tableShop,tableOwner.c.user_id == tableShop.c.owner_id).join(tableUser,tableOwner.c.user_id == tableUser.c.id).join(tableMenu,tableShop.c.id == tableMenu.c.shop_id)).where(tableOwner.c.user_id == user_id)).fetchall()
-
+                    menus = conn.execute(select(tableMenu.c.shop_id).select_from(tableOwner.join(tableShop,tableOwner.c.user_id == tableShop.c.owner_id).join(tableUser,tableOwner.c.user_id == tableUser.c.id).join(tableMenu,tableShop.c.id == tableMenu.c.shop_id)).where(tableOwner.c.user_id == user.id)).fetchall()
+                    
                     res = {'token':access_token, "Owner":{"user":usuario,"data_owner":[isowner,menus]}}
                     return JSONResponse(content=jsonable_encoder(res),status_code=status.HTTP_200_OK)
                 else:
@@ -79,7 +79,7 @@ def loginUser(data:OAuth2PasswordRequestForm=Depends()):
             else:
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username or password")
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f'Incorrect username or password')
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f'{e}')
 
 @userRoute.post('/auth/register')
 def registerUser(data:Usuario):
