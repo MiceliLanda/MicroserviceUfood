@@ -4,6 +4,8 @@ import bcrypt
 from fastapi import APIRouter
 from models.user import tableUser
 from models.owner import tableOwner
+from models.shop import tableShop
+from models.menu import tableMenu
 from schemas.user import Usuario, UsuarioUpdate
 from config.db import conn
 from fastapi import Depends, HTTPException, status
@@ -67,7 +69,9 @@ def loginUser(data:OAuth2PasswordRequestForm=Depends()):
                 usuario = {'id':user.id,'name':user.name,'lastname':user.lastname,'email':user.email,'phone':user.phone,'avatar_url':user.url_avatar}
                 if user.isowner == 1:
                     isowner = conn.execute(select(tableOwner).select_from(tableUser.join(tableOwner, tableOwner.c.user_id == user.id))).first()
-                    res = {'token':access_token, "Owner":{"user":usuario,"data_owner":isowner}}
+                    menus = conn.execute(select(tableMenu.c.shop_id).select_from(tableOwner.join(tableShop,tableOwner.c.user_id == tableShop.c.owner_id).join(tableUser,tableOwner.c.user_id == tableUser.c.id).join(tableMenu,tableShop.c.id == tableMenu.c.shop_id)).where(tableOwner.c.user_id == user_id)).fetchall()
+
+                    res = {'token':access_token, "Owner":{"user":usuario,"data_owner":[isowner,menus]}}
                     return JSONResponse(content=jsonable_encoder(res),status_code=status.HTTP_200_OK)
                 else:
                     res = {'token':access_token, "Client":[usuario]}
