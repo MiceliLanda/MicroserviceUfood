@@ -24,7 +24,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 userRoute = APIRouter()
 
 @userRoute.get("/")
-def getUsers():
+async def getUsers():
     try:
     # join table user with table owner
     #query = conn.execute(select(tableUser.c.id,tableUser.c.name,tableUser.c.lastname,tableUser.c.url_avatar,tableUser.c.email,tableUser.c.phone,tableUser.c.isowner,tableOwner).select_from(tableUser.join(tableOwner, tableUser.c.id == tableOwner.c.user_id))).fetchall()
@@ -35,7 +35,7 @@ def getUsers():
         return {"Error":str(e)}
         
 @userRoute.delete("/auth/delete/{id}")
-def deleteUser(id: int):
+async def deleteUser(id: int):
     try:
         type = conn.execute(tableUser.select().where(tableUser.c.id == id)).first()
         if type.isowner == 1:
@@ -48,7 +48,7 @@ def deleteUser(id: int):
         return {"Error":str(e)}
         
 @userRoute.put("/auth/update/{id}")
-def updateUser(id: int, user: UsuarioUpdate):
+async def updateUser(id: int, user: UsuarioUpdate):
     try:
         conn.execute(tableUser.update().where(tableUser.c.id == id).values(name=user.name,lastname=user.lastname,url_avatar=user.url_avatar,email=user.email,phone=user.phone))
         return {"message": "Usuario actualizado exitosamente"}
@@ -56,7 +56,7 @@ def updateUser(id: int, user: UsuarioUpdate):
         return {"Error":str(e)}
 
 @userRoute.post('/auth/login')
-def loginUser(data:OAuth2PasswordRequestForm=Depends()):
+async def loginUser(data:OAuth2PasswordRequestForm=Depends()):
     try:
         user = load_user(data.username)
         if user == None:
@@ -86,7 +86,7 @@ def loginUser(data:OAuth2PasswordRequestForm=Depends()):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f'{e}')
 
 @userRoute.post('/auth/register')
-def registerUser(data:Usuario):
+async def registerUser(data:Usuario):
     try:
         res = conn.execute(tableUser.select().where(tableUser.c.email == data.email)).first()
         if res == None:
@@ -106,5 +106,5 @@ def registerUser(data:Usuario):
         return str(e)
 
 @manager.user_loader()
-def load_user(username:str):
+async def load_user(username:str):
     return conn.execute(tableUser.select().where(tableUser.c.email == username)).first()

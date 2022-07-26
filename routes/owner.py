@@ -10,7 +10,7 @@ from models.menu import tableMenu
 ownerRoute = APIRouter()
 
 @ownerRoute.get("/owner/shop/{id}")
-def shopOwner(id: int):
+async def shopOwner(id: int):
     try:
         dataOwner = conn.execute(select(tableUser.c.id,tableUser.c.name,tableUser.c.email,tableUser.c.phone,tableUser.c.isowner).select_from(tableUser).where(tableUser.c.id == id)).first()
         if dataOwner == []:
@@ -31,7 +31,7 @@ def shopOwner(id: int):
         return {"Error":str(e)}
 
 @ownerRoute.post("/owner/shop/create")
-def createShop(shop:Shop):
+async def createShop(shop:Shop):
     try:
         test = conn.execute(select(tableUser.c.isowner).where(tableUser.c.id == shop.owner_id)).first()
         if(test.isowner == 0):
@@ -45,7 +45,7 @@ def createShop(shop:Shop):
         return {"Error":str(e)}
 
 @ownerRoute.put("/owner/shop/update/{id}")
-def updateUser(id: int, shop: ShopUpdate):
+async def updateUser(id: int, shop: ShopUpdate):
     try:
         conn.execute(tableShop.update().where(tableShop.c.id == id).values(name=shop.name,url_shop=shop.url_shop,phone=shop.phone,address=shop.address))
         return {"message": "shop actualizada exitosamente"}
@@ -53,7 +53,7 @@ def updateUser(id: int, shop: ShopUpdate):
         return {"Error":str(e)}
 
 @ownerRoute.delete("/owner/shop/delete/{id}")
-def deleteShop(id_shop: int):
+async def deleteShop(id_shop: int):
     try:
         # conn.execute(tableReview.delete().where(tableReview.c.shop_id == id_shop))
         # menu_id = conn.execute(select(tableMenu.c.id).where(tableMenu.c.shop_id == id_shop)).first()[0]
