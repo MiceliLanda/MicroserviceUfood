@@ -38,12 +38,15 @@ async def getUsers():
 async def deleteUser(id: int):
     try:
         type = conn.execute(tableUser.select().where(tableUser.c.id == id)).first()
-        if type.isowner == 1:
-            conn.execute(tableOwner.delete().where(tableOwner.c.user_id == id))
-            conn.execute(tableUser.delete().where(tableUser.c.id == id))
+        if type == None:
+            return {"Error":"No se encontro el usuario"}
         else:
-            conn.execute(tableUser.delete().where(tableUser.c.id == id))
-        return {"message": "Usuario eliminado exitosamente"}
+            if type.isowner == 1:
+                conn.execute(tableOwner.delete().where(tableOwner.c.user_id == id))
+                conn.execute(tableUser.delete().where(tableUser.c.id == id))
+            else:
+                conn.execute(tableUser.delete().where(tableUser.c.id == id))
+            return {"message": "Usuario eliminado exitosamente"}
     except Exception as e:
         return {"Error":str(e)}
         
@@ -68,13 +71,11 @@ async def loginUser(data:OAuth2PasswordRequestForm=Depends()):
                 response.set_cookie(manager.cookie_name,access_token)
                 usuario = {'id':user.id,'name':user.name,'lastname':user.lastname,'email':user.email,'phone':user.phone,'avatar_url':user.url_avatar,"credits":user.credits}
                 if user.isowner == 1:
-                    isowner = conn.execute(select(tableOwner).select_from(tableUser.join(tableOwner, tableOwner.c.user_id == user.id))).first()
-                    menus = conn.execute(select(tableMenu.c.id,tableShop.c.id).select_from(tableOwner.join(tableShop,tableOwner.c.user_id == tableShop.c.owner_id).join(tableUser,tableOwner.c.user_id == tableUser.c.id).join(tableMenu,tableShop.c.id == tableMenu.c.shop_id)).where(tableOwner.c.user_id == user.id)).fetchall()
+                    isowner =  await conn.execute(select(tableOwner).select_from(tableUser.join(tableOwner, tableOwner.c.user_id == user.id))).first()
+                    menus =  await conn.execute(select(tableMenu.c.id,tableShop.c.id).select_from(tableOwner.join(tableShop,tableOwner.c.user_id == tableShop.c.owner_id).join(tableUser,tableOwner.c.user_id == tableUser.c.id).join(tableMenu,tableShop.c.id == tableMenu.c.shop_id)).where(tableOwner.c.user_id == user.id)).fetchall()
                     id_shops= []
                     for menu in menus:
                         id_shops.append({"id_menu":menu[0],"id_shop":menu[1]})                
-                    print('id_menu',list(id_shops))
-
                     res = {'token':access_token, "Owner":{"user":usuario,"data_owner":[isowner,{"info_shop":id_shops}]}}
                     return JSONResponse(content=jsonable_encoder(res),status_code=status.HTTP_200_OK)
                 else:
@@ -83,7 +84,7 @@ async def loginUser(data:OAuth2PasswordRequestForm=Depends()):
             else:
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username or password")
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f'{e}')
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f'error: {e}')
 
 @userRoute.post('/auth/register')
 async def registerUser(data:Usuario):
@@ -95,16 +96,16 @@ async def registerUser(data:Usuario):
                 conn.execute(tableUser.insert(), data.dict())
                 result = conn.execute(tableUser.select().where(tableUser.c.email == data.email)).first()
                 conn.execute(tableOwner.insert(), {'user_id':result.id})
-                return 'Dueño creado Correctamente'
+                return JSONResponse(content='Dueño creado correctamente',status_code=status.HTTP_200_OK)
             else:
                 data.password = hashpw(data.password.encode('utf-8'), gensalt())
                 conn.execute(tableUser.insert(), data.dict())
-            return 'Usuario Creado Correctamente'
+            return JSONResponse(content='Usuario creado correctamente',status_code=status.HTTP_200_OK)
         else:
-            return 'El Usuario ya existe'
+            return JSONResponse(content='El usuario ya existe',status_code=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
-        return str(e)
+        return JSONResponse(content=f'{e}',status_code=status.HTTP_400_BAD_REQUEST)
 
 @manager.user_loader()
-async def load_user(username:str):
+def load_user(username:str):
     return conn.execute(tableUser.select().where(tableUser.c.email == username)).first()
