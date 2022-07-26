@@ -71,8 +71,8 @@ async def loginUser(data:OAuth2PasswordRequestForm=Depends()):
                 response.set_cookie(manager.cookie_name,access_token)
                 usuario = {'id':user.id,'name':user.name,'lastname':user.lastname,'email':user.email,'phone':user.phone,'avatar_url':user.url_avatar,"credits":user.credits}
                 if user.isowner == 1:
-                    isowner =  await conn.execute(select(tableOwner).select_from(tableUser.join(tableOwner, tableOwner.c.user_id == user.id))).first()
-                    menus =  await conn.execute(select(tableMenu.c.id,tableShop.c.id).select_from(tableOwner.join(tableShop,tableOwner.c.user_id == tableShop.c.owner_id).join(tableUser,tableOwner.c.user_id == tableUser.c.id).join(tableMenu,tableShop.c.id == tableMenu.c.shop_id)).where(tableOwner.c.user_id == user.id)).fetchall()
+                    isowner = conn.execute(select(tableOwner).select_from(tableUser.join(tableOwner, tableOwner.c.user_id == user.id))).first()
+                    menus = conn.execute(select(tableMenu.c.id,tableShop.c.id).select_from(tableOwner.join(tableShop,tableOwner.c.user_id == tableShop.c.owner_id).join(tableUser,tableOwner.c.user_id == tableUser.c.id).join(tableMenu,tableShop.c.id == tableMenu.c.shop_id)).where(tableOwner.c.user_id == user.id)).fetchall()
                     id_shops= []
                     for menu in menus:
                         id_shops.append({"id_menu":menu[0],"id_shop":menu[1]})                
@@ -107,5 +107,5 @@ async def registerUser(data:Usuario):
         return JSONResponse(content=f'{e}',status_code=status.HTTP_400_BAD_REQUEST)
 
 @manager.user_loader()
-def load_user(username:str):
+async def load_user(username:str):
     return conn.execute(tableUser.select().where(tableUser.c.email == username)).first()
