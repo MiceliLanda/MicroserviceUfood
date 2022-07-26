@@ -107,5 +107,5 @@ async def registerUser(data:Usuario):
         return JSONResponse(content=f'{e}',status_code=status.HTTP_400_BAD_REQUEST)
 
 @manager.user_loader()
-async def load_user(username:str):
+def load_user(username:str):
     return conn.execute(tableUser.select().where(tableUser.c.email == username)).first()
